@@ -181,10 +181,31 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Go
 
                 //progressBar.setVisibility(View.GONE);
                 signInButton.setVisibility(View.VISIBLE);
-
                 if (!task.isSuccessful()) {
                     Toast.makeText(getApplicationContext(), R.string.not_firebase_auth, Toast.LENGTH_SHORT).show();
+                }else {
+                    mDatabase = FirebaseDatabase.getInstance().getReference("users");
+                    String userId = task.getResult().getUser().getUid();
+                    final User[] usuario = new User[1];
+
+                    mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            usuario[0] = dataSnapshot.getValue(User.class);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                    if (usuario[0] == null) {
+                        User user = new User("Vendedor", task.getResult().getUser().getEmail());
+                        mDatabase.child(userId).setValue(user);
+
+                    }
                 }
+
             }
         });
     }
