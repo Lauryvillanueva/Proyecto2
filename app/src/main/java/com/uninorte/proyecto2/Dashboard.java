@@ -58,7 +58,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
     //
     private TextView txtWelcome;
-    private Button btnLogout;
+    private Button btnLogout,btnMapa;
     private RelativeLayout activity_dashboard;
 
     private FirebaseAuth auth;
@@ -143,6 +143,9 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         btnLogout = (Button) findViewById(R.id.dashboard_btn_logout);
         activity_dashboard = (RelativeLayout) findViewById(R.id.activity_dash_board);
         btnLogout.setOnClickListener(this);
+
+        btnMapa = (Button) findViewById(R.id.dashboard_btn_mapa);
+        btnMapa.setOnClickListener(this);
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -353,6 +356,10 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             case R.id.dashboard_btn_logout :
                 stopGps();
                 logoutUser();
+                break;
+            case R.id.dashboard_btn_mapa :
+                Intent i = new Intent(Dashboard.this, MapsActivity.class);
+                startActivity(i);
                 break;
         }
     }
