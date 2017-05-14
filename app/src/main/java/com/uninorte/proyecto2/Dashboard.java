@@ -192,7 +192,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
             }
         });
-        if (!isAdmin){
+        if (!isAdmin) {
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
