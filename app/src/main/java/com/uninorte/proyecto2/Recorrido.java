@@ -7,25 +7,27 @@ import com.google.firebase.database.IgnoreExtraProperties;
  */
 @IgnoreExtraProperties
 public class Recorrido {
-    private String Nombre;
+
     private String User_id;
+    private String TimeI;
 
     public Recorrido() {
 
     }
 
-    public Recorrido(String nombre, String user_id) {
-        Nombre = nombre;
+    public Recorrido( String user_id, String timeI) {
         User_id = user_id;
+        TimeI = timeI;
     }
 
-    public String getNombre() {
-        return Nombre;
+    public String getTimeI() {
+        return TimeI;
     }
 
-    public void setNombre(String nombre) {
-        Nombre = nombre;
+    public void setTimeI(String timeI) {
+        TimeI = timeI;
     }
+
 
     public String getUser_id() {
         return User_id;

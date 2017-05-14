@@ -22,8 +22,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +37,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     EditText input_email,input_password;
     TextView btnSignup,btnForgotPass;
     Context context;
+    private DatabaseReference mDatabase;
     //Intent intent;
 
     ScrollView activity_main;
@@ -153,18 +157,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                         else{
-                            //DEBE VERIFICAR PRIMERO SI ES EL ADM O ES VENDEDOR---
-                            //si es vendedor entonces
 
-                            //Envio el nombre de la cuenta
                             Intent intent = new Intent(Login.this,Dashboard.class);
-                            User user= new  User("Vendedor",email);
-                            intent.putExtra("email",user.getEmail());
                             startActivity(intent);
                             finish();
-                            Log.d("TAG", user.getEmail());
 
-                            //sino
+
 
                         }
                     }

@@ -33,8 +33,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,6 +59,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     int REQUEST_CODE = 1;
     TelephonyManager myTelephonyManager;
     PhoneStateListener callStateListener;
+    private String RecorridoId;
     ArrayList<String> track =new ArrayList<String>();
     /**
      * Messenger for communicating with the service.
@@ -71,8 +75,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     private NotificationManager mNotificationManager;
     private boolean enableConnection;
     private boolean enableGPS;
-    private FirebaseDatabase database;
-    private DatabaseReference myRef;
+    private DatabaseReference mDatabase;
     private Toolbar toolbar;
     private Track tracked;
    // DatabaseReference mDatabase;
@@ -105,6 +108,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
            Toast.makeText(Dashboard.this, "Conectado",
                     Toast.LENGTH_SHORT).show();
+
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -134,51 +138,62 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
         }
 
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-        // Write a message to the database
-
-        //CORREGIRRRRR PASAR KEY
-        String email = getIntent().getStringExtra("email");
-        database = FirebaseDatabase.getInstance();
-        int index = email.indexOf("@");
-        String usuario = email.substring(0, index);
-
-
-        myRef = database.getReference(usuario);
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            buildAlertMessageNoGps();
-        }
-        myTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        callStateListener = new PhoneStateListener() {
-            public void onDataConnectionStateChanged(int state) {
-                String stateString;
-                switch (state) {
-                    case TelephonyManager.DATA_CONNECTED:
-                        enableConnection = true;
-                        break;
-                    case TelephonyManager.DATA_DISCONNECTED:
-                        Log.i("State: ", "Offline");
-                        stateString = "Offline";
-                        enableConnection = false;
-                        Toast.makeText(getApplicationContext(),
-                                stateString, Toast.LENGTH_LONG).show();
-                        break;
-                    case TelephonyManager.DATA_SUSPENDED:
-                        Log.i("State: ", "IDLE");
-                        stateString = "Idle";
-                        Toast.makeText(getApplicationContext(),
-                                stateString, Toast.LENGTH_LONG).show();
-                        break;
-                }
+        mDatabase =FirebaseDatabase.getInstance().getReference("users");
+        String userId=auth.getCurrentUser().getUid();
+        final User[] usuario = new User[1];
+        mDatabase.child(userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                usuario[0] = dataSnapshot.getValue(User.class);
             }
-        };
-        myTelephonyManager.listen(callStateListener,
-                PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 
-        //empiezo a guardar apenas inicializo
-        startGPS();
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        if (usuario[0].getRole()=="Vendedor"){
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+
+            if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+                buildAlertMessageNoGps();
+            }
+            myTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            callStateListener = new PhoneStateListener() {
+                public void onDataConnectionStateChanged(int state) {
+                    String stateString;
+                    switch (state) {
+                        case TelephonyManager.DATA_CONNECTED:
+                            enableConnection = true;
+                            break;
+                        case TelephonyManager.DATA_DISCONNECTED:
+                            Log.i("State: ", "Offline");
+                            stateString = "Offline";
+                            enableConnection = false;
+                            Toast.makeText(getApplicationContext(),
+                                    stateString, Toast.LENGTH_LONG).show();
+                            break;
+                        case TelephonyManager.DATA_SUSPENDED:
+                            Log.i("State: ", "IDLE");
+                            stateString = "Idle";
+                            Toast.makeText(getApplicationContext(),
+                                    stateString, Toast.LENGTH_LONG).show();
+                            break;
+                    }
+                }
+            };
+            myTelephonyManager.listen(callStateListener,
+                    PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+
+            //empiezo a guardar apenas inicializo
+
+            startGPS();
+        }else{
+
+        }
 
     }
 
@@ -241,14 +256,20 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             return;
 
         }
+
         boolean enabled = mManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if(enabled){
             mBound = true;
             Intent ir = new Intent(this, LocationUpdaterServices.class);
 
             //CORREGIRRRRR PASAR KEY
-            String Email = getIntent().getStringExtra("email");
-            ir.putExtra("data", Email);
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = df.format(c.getTime());
+            Recorrido recorrido= new Recorrido(auth.getCurrentUser().getUid(),formattedDate);
+            mDatabase = FirebaseDatabase.getInstance().getReference("recorridos");
+            RecorridoId= mDatabase.push().getKey();
+            mDatabase.child(RecorridoId).setValue(recorrido);
             // Bind to the service
             bindService(new Intent(this, LocationUpdaterServices.class), mConnection,
                     Context.BIND_AUTO_CREATE);
@@ -331,24 +352,9 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                     String latitud = str1.substring(0, index);
                     String longitud = str1.substring(index + 1, str1.length());
                     Track tracked = new Track(latitud, longitud);
-                    Calendar c = Calendar.getInstance();
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String formattedDate = df.format(c.getTime());
-                    Toast.makeText(getApplicationContext(), formattedDate, Toast.LENGTH_SHORT).show();
 
-                    //Se crea un nuevo elemento en la db del vendedeor
 
-                    //CORREGIRRRRR PASAR KEY   --- poner la fecha tambien
 
-                    database = FirebaseDatabase.getInstance();
-                    String email = getIntent().getStringExtra("email");
-
-                    int index2 = email.indexOf("@");
-                    String usuario = email.substring(0, index2);
-
-                    myRef = database.getReference(usuario);
-                    String reco = myRef.push().getKey();
-                    myRef.child(reco).setValue(tracked);
                     break;
                 default:
                     super.handleMessage(msg);
