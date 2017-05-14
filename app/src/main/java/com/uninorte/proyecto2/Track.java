@@ -8,6 +8,9 @@ public class Track {
     String lat;
     String lon;
 
+    public Track() {
+    }
+
     public Track(String lat, String lon) {
 
         this.lat = lat;

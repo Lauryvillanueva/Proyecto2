@@ -315,6 +315,10 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             Intent ir = new Intent(this, LocationUpdaterServices.class);
 
             //CORREGIRRRRR PASAR KEY
+
+            // Bind to the service
+            bindService(new Intent(this, LocationUpdaterServices.class), mConnection,
+                    Context.BIND_AUTO_CREATE);
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String formattedDate = df.format(c.getTime());
@@ -322,9 +326,6 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             mDatabase = FirebaseDatabase.getInstance().getReference("recorridos").child(auth.getCurrentUser().getUid());
             RecorridoId= mDatabase.push().getKey();
             mDatabase.child(RecorridoId).setValue(recorrido);
-            // Bind to the service
-            bindService(new Intent(this, LocationUpdaterServices.class), mConnection,
-                    Context.BIND_AUTO_CREATE);
         } else {
 
         }
