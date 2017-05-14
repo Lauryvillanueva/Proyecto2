@@ -169,7 +169,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                 });
     }}
 
-    // validating email id
+    // validating email iD
     private boolean isValidEmail(String email) {
         String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
                 + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
