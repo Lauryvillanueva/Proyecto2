@@ -226,6 +226,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Go
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        auth.addAuthStateListener(firebaseAuthListener);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
