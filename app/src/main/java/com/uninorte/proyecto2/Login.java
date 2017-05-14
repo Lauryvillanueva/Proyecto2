@@ -13,15 +13,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,24 +40,30 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Login extends AppCompatActivity implements View.OnClickListener {
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+
+public class Login extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener{
 
     Button btnLogin;
     EditText input_email,input_password;
-    TextView btnSignup,btnForgotPass;
+    TextView btnForgotPass;
     Context context;
     private DatabaseReference mDatabase;
     //Intent intent;
-
     ScrollView activity_main;
-
     private ProgressDialog progressDialog;
-
     private FirebaseAuth auth;
 
     //base de datos Firebase
     DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
     DatabaseReference user = ref.child("users");
+
+    //google
+    private GoogleApiClient googleApiClient;
+    private SignInButton signInButton;
+    public static final int SIGN_IN_CODE = 777;
+    private FirebaseAuth.AuthStateListener firebaseAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,14 +96,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         btnLogin = (Button)findViewById(R.id.login_btn_login);
         input_email = (EditText)findViewById(R.id.login_email);
         input_password = (EditText)findViewById(R.id.login_password);
-        btnSignup = (TextView)findViewById(R.id.login_btn_signup);
         btnForgotPass = (TextView)findViewById(R.id.login_btn_forgot_password);
-
-
         String email = input_email.getText().toString();
         String password = input_password.getText().toString();
-
-        btnSignup.setOnClickListener(this);
         btnForgotPass.setOnClickListener(this);
         btnLogin.setOnClickListener(this);
 
@@ -96,9 +106,104 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         auth = FirebaseAuth.getInstance();
 
         //Check already session , if ok-> DashBoard
-        if(auth.getCurrentUser() != null)
-            startActivity(new Intent(Login.this,Dashboard.class));
+        if(auth.getCurrentUser() != null) {
+            startActivity(new Intent(Login.this, Dashboard.class));
+        }
+
+        //google
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+        signInButton = (SignInButton) findViewById(R.id.signInButton);
+
+        signInButton.setSize(SignInButton.SIZE_WIDE);
+
+        signInButton.setColorScheme(SignInButton.COLOR_DARK);
+
+        signInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+                startActivityForResult(intent, SIGN_IN_CODE);
+            }
+        });
+        firebaseAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    goMainScreen();
+                }
+            }
+        };
+
     }
+    //google
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == SIGN_IN_CODE) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        if (result.isSuccess()) {
+            firebaseAuthWithGoogle(result.getSignInAccount());
+        } else {
+            Toast.makeText(this, R.string.not_log_in, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount signInAccount) {
+
+        //progressBar.setVisibility(View.VISIBLE);
+        signInButton.setVisibility(View.GONE);
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
+        auth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+
+                //progressBar.setVisibility(View.GONE);
+                signInButton.setVisibility(View.VISIBLE);
+
+                if (!task.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), R.string.not_firebase_auth, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void goMainScreen() {
+        Intent intent = new Intent(this, Dashboard.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (firebaseAuthListener != null) {
+            auth.removeAuthStateListener(firebaseAuthListener);
+        }
+    }
+    //----------------------------------
 
     @Override
     public void onClick(View view) {
@@ -108,13 +213,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             finish();
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
-        else if(view.getId() == R.id.login_btn_signup)
-        {
-            startActivity(new Intent(Login.this,SignUp.class));
-            finish();
-            overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
-        }
-        else if(view.getId() == R.id.login_btn_login)
+        else if(view.getId() == R.id.login_btn_login )
         {
             loginUser(input_email.getText().toString(),input_password.getText().toString());
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);

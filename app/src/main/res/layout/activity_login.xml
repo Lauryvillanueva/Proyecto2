@@ -153,17 +153,14 @@
 
                 </LinearLayout>
 
+                <com.google.android.gms.common.SignInButton
+                    android:id="@+id/signInButton"
+                    android:layout_width="204dp"
+                    android:layout_height="match_parent"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center" />
 
-                <TextView
-                    android:id="@+id/login_btn_signup"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/login_layout_or"
-                    android:layout_marginBottom="24dp"
-                    android:gravity="center"
-                    android:text="Registrarse"
-                    android:textColor="@color/primary_text"
-                    android:textSize="16dp" />
 
             </LinearLayout>
         </ScrollView>
