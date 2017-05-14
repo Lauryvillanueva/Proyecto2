@@ -152,7 +152,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
             }
         });
-        if (usuario[0].getRole()=="Vendedor"){ 
+        if (usuario[0].getRole()=="Vendedor"){
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
@@ -352,9 +352,9 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                     String latitud = str1.substring(0, index);
                     String longitud = str1.substring(index + 1, str1.length());
                     Track tracked = new Track(latitud, longitud);
-
-
-
+                    mDatabase=FirebaseDatabase.getInstance().getReference("Track").child(RecorridoId);
+                    String TrackId=mDatabase.push().getKey();
+                    mDatabase.child(TrackId).setValue(tracked);
                     break;
                 default:
                     super.handleMessage(msg);
