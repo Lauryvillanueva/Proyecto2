@@ -1,0 +1,358 @@
+package com.uninorte.proyecto2;
+
+import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+
+public class Dashboard extends AppCompatActivity implements View.OnClickListener,LocationListener {
+
+    private TextView txtWelcome;
+    private Button btnLogout;
+    private RelativeLayout activity_dashboard;
+
+    private FirebaseAuth auth;
+
+    //-------------------------------------------------------------------
+    public static String data;
+    final Messenger mMessenger = new Messenger(new IncomingHandler());
+    Notification notification;
+    int mNotificationId = 001;
+    int REQUEST_CODE = 1;
+    TelephonyManager myTelephonyManager;
+    PhoneStateListener callStateListener;
+    ArrayList<String> track =new ArrayList<String>();
+    /**
+     * Messenger for communicating with the service.
+     */
+    Messenger mService = null;
+    /**
+     * Flag indicating whether we have called bind on the service.
+     */
+    boolean mBound;
+    private LocationUpdaterServices myService;
+    //Variables
+    private LocationManager mManager;
+    private NotificationManager mNotificationManager;
+    private boolean enableConnection;
+    private boolean enableGPS;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private Toolbar toolbar;
+    private Track tracked;
+   // DatabaseReference mDatabase;
+
+
+    /**
+     * Class for interacting with the main interface of the service.
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+
+            mService = new Messenger(service);
+
+            // We want to monitor the service for as long as we are
+            // connected to it.
+            try {
+                Message msg = Message.obtain(null,
+                        LocationUpdaterServices.MSG_REGISTER_CLIENT);
+                msg.replyTo = mMessenger;
+                mService.send(msg);
+
+                // Give it some value as an example.
+                msg = Message.obtain(null,
+                        LocationUpdaterServices.MSG_SET_VALUE, this.hashCode(), 0);
+                mService.send(msg);
+            } catch (RemoteException e) {
+
+            }
+
+           Toast.makeText(Dashboard.this, "Conectado",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            mService = null;
+           Toast.makeText(Dashboard.this, "Desconectado",
+                    Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_dashboard);
+
+        //View
+        txtWelcome = (TextView) findViewById(R.id.dashboard_welcome);
+
+        btnLogout = (Button) findViewById(R.id.dashboard_btn_logout);
+        activity_dashboard = (RelativeLayout) findViewById(R.id.activity_dash_board);
+        btnLogout.setOnClickListener(this);
+
+        //Init Firebase
+        auth = FirebaseAuth.getInstance();
+
+        //Session check
+        if (auth.getCurrentUser() != null) {
+            txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        // Write a message to the database
+
+        //CORREGIRRRRR PASAR KEY
+        String email = getIntent().getStringExtra("email");
+        database = FirebaseDatabase.getInstance();
+        int index = email.indexOf("@");
+        String usuario = email.substring(0, index);
+
+
+        myRef = database.getReference(usuario);
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+        }
+        myTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        callStateListener = new PhoneStateListener() {
+            public void onDataConnectionStateChanged(int state) {
+                String stateString;
+                switch (state) {
+                    case TelephonyManager.DATA_CONNECTED:
+                        enableConnection = true;
+                        break;
+                    case TelephonyManager.DATA_DISCONNECTED:
+                        Log.i("State: ", "Offline");
+                        stateString = "Offline";
+                        enableConnection = false;
+                        Toast.makeText(getApplicationContext(),
+                                stateString, Toast.LENGTH_LONG).show();
+                        break;
+                    case TelephonyManager.DATA_SUSPENDED:
+                        Log.i("State: ", "IDLE");
+                        stateString = "Idle";
+                        Toast.makeText(getApplicationContext(),
+                                stateString, Toast.LENGTH_LONG).show();
+                        break;
+                }
+            }
+        };
+        myTelephonyManager.listen(callStateListener,
+                PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+
+        //empiezo a guardar apenas inicializo
+        startGPS();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("GPS Desactivado");
+        builder.setMessage("Su GPS se encuentra desactivado, desea activarlo?");
+        builder.setCancelable(false);
+
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+        {
+            public void onClick(final DialogInterface dialog, final int id)
+            {
+                launchGPSOptions();
+            }
+        });
+
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener()
+        {
+            public void onClick(final DialogInterface dialog, final int id)
+            {
+                dialog.cancel();
+            }
+        });
+
+        builder.create().show();
+    }
+
+    private void launchGPSOptions()
+    {
+        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivityForResult(intent, REQUEST_CODE);
+    }
+
+    public void stopGps() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        //Detiene el servicio
+        if (mBound) {
+            mBound = false;
+            Intent ir = new Intent(this, LocationUpdaterServices.class);
+            stopService(ir);
+            unbindService(mConnection);
+        }
+
+    }
+    public void startGPS() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+            return;
+
+        }
+        boolean enabled = mManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if(enabled){
+            mBound = true;
+            Intent ir = new Intent(this, LocationUpdaterServices.class);
+
+            //CORREGIRRRRR PASAR KEY
+            String Email = getIntent().getStringExtra("email");
+            ir.putExtra("data", Email);
+            // Bind to the service
+            bindService(new Intent(this, LocationUpdaterServices.class), mConnection,
+                    Context.BIND_AUTO_CREATE);
+        } else {
+
+        }
+
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+
+            case 1:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startGPS();
+                }
+                else {
+                }
+                return;
+
+        }
+
+
+    }
+
+
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.dashboard_btn_logout :
+                stopGps();
+                logoutUser();
+                break;
+        }
+    }
+
+    private void logoutUser() {
+        auth.signOut();
+        if(auth.getCurrentUser() == null)
+        {
+            startActivity(new Intent(Dashboard.this,Principal.class));
+            finish();
+        }
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+        Toast.makeText(getApplicationContext(), "GPS conectado", Toast.LENGTH_LONG).show();
+        enableGPS = true;
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+        Toast.makeText(getApplicationContext(),"GPS desconectado",Toast.LENGTH_LONG).show();
+        enableGPS = false;
+    }
+
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case LocationUpdaterServices.MSG_SET_VALUE:
+                    String str1 = msg.getData().getString("str1");
+                    Log.d("VendorActivityTag", "handleMessage: " + str1);
+                    int index = str1.indexOf("|");
+                    String latitud = str1.substring(0, index);
+                    String longitud = str1.substring(index + 1, str1.length());
+                    Track tracked = new Track(latitud, longitud);
+                    Calendar c = Calendar.getInstance();
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = df.format(c.getTime());
+                    Toast.makeText(getApplicationContext(), formattedDate, Toast.LENGTH_SHORT).show();
+
+                    //Se crea un nuevo elemento en la db del vendedeor
+
+                    //CORREGIRRRRR PASAR KEY   --- poner la fecha tambien
+
+                    database = FirebaseDatabase.getInstance();
+                    String email = getIntent().getStringExtra("email");
+
+                    int index2 = email.indexOf("@");
+                    String usuario = email.substring(0, index2);
+
+                    myRef = database.getReference(usuario);
+                    String reco = myRef.push().getKey();
+                    myRef.child(reco).setValue(tracked);
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+}
