@@ -17,6 +17,9 @@ import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -38,6 +41,9 @@ public class MapsActivity extends FragmentActivity implements
 
 
     private ArrayList<LatLng> mLocationsList;
+
+    private FirebaseAuth auth;
+    private DatabaseReference mDatabase;
 
 
     private Activity mAct;
@@ -89,10 +95,14 @@ public class MapsActivity extends FragmentActivity implements
 
         /*vendedorID=getIntent().getStringExtra("VendedorID");
         recorridoID=getIntent().getStringExtra("RecorridoID");*/
+/*
+        auth = FirebaseAuth.getInstance();
 
+        vendedorID=auth.getCurrentUser().getUid();
+        recorridoID="-Kk6xZ2WXzc2LsD0MnF1";
+        mDatabase=FirebaseDatabase.getInstance().getReference("tracks").child(vendedorID);
 
-
-
+*/
         mAct = this;
         mRequestingLocationUpdates = true;
 
@@ -103,7 +113,7 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         UiSettings uiSettings = mMap.getUiSettings();
         uiSettings.setMapToolbarEnabled(true);
         uiSettings.setZoomControlsEnabled(true);

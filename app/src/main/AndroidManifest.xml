@@ -53,10 +53,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".DashBoard_Adm"
-            android:label=""
-            android:theme="@style/AppTheme.Dark" />
+
         <activity
             android:name=".ForgotPassword"
             android:label=""
@@ -91,7 +88,7 @@
             android:process=":my_service" />
 
         <activity android:name=".Dashboard" />
-        <activity android:name=".MapsActivity"></activity>
+
     </application>
 
 </manifest>
