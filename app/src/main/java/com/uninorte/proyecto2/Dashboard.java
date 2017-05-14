@@ -152,7 +152,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
             }
         });
-        if (usuario[0].getRole()=="Vendedor"){
+        if (usuario[0].getRole()=="Vendedor"){ 
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
