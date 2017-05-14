@@ -72,6 +72,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     TelephonyManager myTelephonyManager;
     PhoneStateListener callStateListener;
     private String RecorridoId;
+    private Recorrido recorrido;
     private boolean isAdmin;
     ArrayList<String> track =new ArrayList<String>();
     /**
@@ -177,12 +178,12 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
         mDatabase =FirebaseDatabase.getInstance().getReference("users");
         String userId=auth.getCurrentUser().getUid();
-        final User[] usuario = new User[1];
-        mDatabase.child(userId).addValueEventListener(new ValueEventListener() {
+
+        mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                usuario[0] = dataSnapshot.getValue(User.class);
-                if (usuario[0].getRole()=="Administrador"){
+                User user=dataSnapshot.getValue(User.class);
+                if (user.getRole().equals("Administrador")){
                     isAdmin=true;
                 }
             }
@@ -281,6 +282,14 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         //Detiene el servicio
         if (mBound) {
             mBound = false;
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = df.format(c.getTime());
+            mDatabase = FirebaseDatabase.getInstance().getReference("recorridos").child(auth.getCurrentUser().getUid()).child(RecorridoId);
+            recorrido.setTimeF(formattedDate);
+            mDatabase.child("timeF").setValue(formattedDate);
+
+
             Intent ir = new Intent(this, LocationUpdaterServices.class);
             stopService(ir);
             unbindService(mConnection);
@@ -306,7 +315,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String formattedDate = df.format(c.getTime());
-            Recorrido recorrido= new Recorrido(auth.getCurrentUser().getUid(),formattedDate);
+            recorrido= new Recorrido(auth.getCurrentUser().getUid(),formattedDate);
             mDatabase = FirebaseDatabase.getInstance().getReference("recorridos").child(auth.getCurrentUser().getUid());
             RecorridoId= mDatabase.push().getKey();
             mDatabase.child(RecorridoId).setValue(recorrido);
@@ -392,7 +401,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                     String latitud = str1.substring(0, index);
                     String longitud = str1.substring(index + 1, str1.length());
                     Track tracked = new Track(latitud, longitud);
-                    mDatabase=FirebaseDatabase.getInstance().getReference("Track").child(RecorridoId);
+                    mDatabase=FirebaseDatabase.getInstance().getReference("tracks").child(RecorridoId);
                     String TrackId=mDatabase.push().getKey();
                     mDatabase.child(TrackId).setValue(tracked);
                     break;

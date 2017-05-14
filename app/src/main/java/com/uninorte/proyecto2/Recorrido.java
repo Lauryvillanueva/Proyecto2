@@ -10,6 +10,7 @@ public class Recorrido {
 
     private String User_id;
     private String TimeI;
+    private String TimeF;
 //
     public Recorrido() {
 
@@ -18,6 +19,14 @@ public class Recorrido {
     public Recorrido( String user_id, String timeI) {
         User_id = user_id;
         TimeI = timeI;
+    }
+
+    public String getTimeF() {
+        return TimeF;
+    }
+
+    public void setTimeF(String timeF) {
+        TimeF = timeF;
     }
 
     public String getTimeI() {

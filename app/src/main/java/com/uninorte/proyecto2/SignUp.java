@@ -102,7 +102,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                         }
                         else{
                             mDatabase = FirebaseDatabase.getInstance().getReference("users");
-                            String userId = mDatabase.push().getKey();
+                            String userId = task.getResult().getUser().getUid();
                             User user= new  User("Vendedor",email);
                             mDatabase.child(userId).setValue(user);
 
