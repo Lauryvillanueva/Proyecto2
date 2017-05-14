@@ -87,8 +87,8 @@ public class MapsActivity extends FragmentActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        vendedorID=getIntent().getStringExtra("VendedorID");
-        recorridoID=getIntent().getStringExtra("RecorridoID");
+        /*vendedorID=getIntent().getStringExtra("VendedorID");
+        recorridoID=getIntent().getStringExtra("RecorridoID");*/
 
 
 

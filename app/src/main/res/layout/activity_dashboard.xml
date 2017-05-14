@@ -85,6 +85,7 @@
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"
                 android:text="Mapa"
+                android:onClick="onClickMap"
                 android:textColor="@color/white" />
 
             <!--android:background="@color/accent"-->

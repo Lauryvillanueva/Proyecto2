@@ -397,6 +397,11 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         enableGPS = false;
     }
 
+    public void onClickMap(View view) {
+        Intent i = new Intent(Dashboard.this,MapsActivity.class);
+        startActivity(i);
+    }
+
     class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
