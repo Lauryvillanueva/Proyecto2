@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-
     <!-- START: ShortcutBadger -->
     <!-- Samsung -->
     <uses-permission android:name="com.sec.android.provider.badge.permission.READ" />
@@ -88,10 +87,12 @@
             android:label=""
             android:theme="@style/AppTheme.Dark" />
 
-        <service android:name=".LocationUpdaterServices"
-            android:process=":my_service"
-            ></service>
-        <activity android:name=".Dashboard"></activity>
+        <service
+            android:name=".LocationUpdaterServices"
+            android:process=":my_service" />
+
+        <activity android:name=".Dashboard" />
+        <activity android:name=".MapsActivity"></activity>
     </application>
 
 </manifest>
