@@ -267,7 +267,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String formattedDate = df.format(c.getTime());
             Recorrido recorrido= new Recorrido(auth.getCurrentUser().getUid(),formattedDate);
-            mDatabase = FirebaseDatabase.getInstance().getReference("recorridos");
+            mDatabase = FirebaseDatabase.getInstance().getReference("recorridos").child(recorrido.getUser_id());
             RecorridoId= mDatabase.push().getKey();
             mDatabase.child(RecorridoId).setValue(recorrido);
             // Bind to the service
