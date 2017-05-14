@@ -10,7 +10,7 @@ public class Recorrido {
 
     private String User_id;
     private String TimeI;
-
+//
     public Recorrido() {
 
     }
