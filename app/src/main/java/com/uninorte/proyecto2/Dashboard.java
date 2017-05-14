@@ -60,6 +60,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     TelephonyManager myTelephonyManager;
     PhoneStateListener callStateListener;
     private String RecorridoId;
+    private boolean isAdmin;
     ArrayList<String> track =new ArrayList<String>();
     /**
      * Messenger for communicating with the service.
@@ -137,6 +138,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         if (auth.getCurrentUser() != null) {
             txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
         }
+        isAdmin=false;
 
         mDatabase =FirebaseDatabase.getInstance().getReference("users");
         String userId=auth.getCurrentUser().getUid();
@@ -145,6 +147,9 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 usuario[0] = dataSnapshot.getValue(User.class);
+                if (usuario[0].getRole()=="Administrador"){
+                    isAdmin=true;
+                }
             }
 
             @Override
@@ -152,7 +157,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
             }
         });
-        if (usuario[0].getRole()=="Vendedor"){
+        if (!isAdmin){
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
