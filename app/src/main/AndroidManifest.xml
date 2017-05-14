@@ -66,12 +66,11 @@
             android:name=".SignUp"
             android:label=""
             android:theme="@style/AppTheme.Dark" />
-        <!--
+
             <activity
             android:name=".MapsActivity"
             android:label=""
             android:theme="@style/AppTheme.Dark" />
-        -->
 
 
         <!--
