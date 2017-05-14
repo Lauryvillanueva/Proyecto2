@@ -45,19 +45,21 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 
 public class Login extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener{
 
-    Button btnLogin;
-    EditText input_email,input_password;
-    TextView btnForgotPass;
-    Context context;
+
+    private static final String TAG = "LoginActivity";
+    private Button btnLogin;
+    private EditText input_email,input_password;
+    private TextView btnForgotPass;
+    private Context context;
     private DatabaseReference mDatabase;
     //Intent intent;
-    ScrollView activity_main;
+    private ScrollView activity_main;
     private ProgressDialog progressDialog;
     private FirebaseAuth auth;
 
     //base de datos Firebase
-    DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
-    DatabaseReference user = ref.child("users");
+    private DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+    private DatabaseReference user = ref.child("users");
 
     //google
     private GoogleApiClient googleApiClient;
@@ -110,16 +112,23 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Go
             startActivity(new Intent(Login.this, Dashboard.class));
         }
 
-        //google
+        // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestId()
                 .requestEmail()
+                .requestProfile()
                 .build();
 
         googleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
+                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Log.e(TAG, "GoogleApiClient connection failed:" + connectionResult.getErrorMessage());
+                    }
+                })
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
+
         signInButton = (SignInButton) findViewById(R.id.signInButton);
 
         signInButton.setSize(SignInButton.SIZE_WIDE);
