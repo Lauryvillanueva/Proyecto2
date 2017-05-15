@@ -29,6 +29,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,8 +58,9 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     private GoogleApiClient googleApiClient;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
     //
-    private TextView txtWelcome;
+    private TextView txtWelcome,tipousua;
     private Button btnLogout,btnMapa;
+    private LinearLayout opc;
     private RelativeLayout activity_dashboard;
 
     private FirebaseAuth auth;
@@ -139,6 +141,8 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
         //View
         txtWelcome = (TextView) findViewById(R.id.dashboard_welcome);
+        tipousua = (TextView) findViewById(R.id.tipousuario);
+        opc = (LinearLayout) findViewById(R.id.OpcAdm);
 
         btnLogout = (Button) findViewById(R.id.dashboard_btn_logout);
         activity_dashboard = (RelativeLayout) findViewById(R.id.activity_dash_board);
@@ -176,6 +180,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         //Session check
         if (auth.getCurrentUser() != null) {
             txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
+
         }
         isAdmin=false;
 
@@ -187,8 +192,12 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user=dataSnapshot.getValue(User.class);
                 if (user.getRole().equals("Administrador")){
+                    Log.i("Tipo Usuario: ",user.getRole() );
+                    //btnMapa.setVisibility(View.VISIBLE);
+                    opc.setVisibility(View.VISIBLE);
                     isAdmin=true;
                 }
+                tipousua.setText(user.getRole());
             }
 
             @Override
@@ -198,7 +207,8 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         });
         if (!isAdmin) {
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            btnMapa.setVisibility(View.GONE);
+            //btnMapa.setVisibility(View.GONE);
+            opc.setVisibility(View.GONE);
             mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 

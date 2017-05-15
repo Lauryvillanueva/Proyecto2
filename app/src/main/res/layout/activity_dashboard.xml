@@ -13,11 +13,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        android:layout_alignBottom="@+id/linearLayout"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="220dp">
+        android:theme="@style/AppTheme.AppBarOverlay">>
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -31,7 +27,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-
                 android:text="Bienvenida"
                 android:textColor="@color/white"
                 android:textSize="20dp" />
@@ -57,8 +52,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="horizontal"
-            android:layout_marginTop="50dp">
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tipousuario"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="right"
+                android:layout_weight="1"
+                android:text="Tipo Usuario:"
+                android:textColor="@color/accent" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/dashboard_welcome"
@@ -67,16 +81,81 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_weight="1"
-                android:text="Bienvenido,usurio" />
+                android:text="Bienvenido,usurio"
+                android:layout_marginBottom="10dp"/>
 
         </LinearLayout>
 
 
         <LinearLayout
+            android:id="@+id/OpcAdm"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:weightSum="1">
+
+                <TextView
+                    android:id="@+id/textViewVend"
+                    android:textColor="@color/black"
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="20dp"
+                    android:gravity="left|center_vertical"
+                    android:text="Vendedor:" />
+
+                <fr.ganfra.materialspinner.MaterialSpinner
+                    android:id="@+id/spinnerVend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:ms_baseColor="@color/primary"
+                    app:ms_enableErrorLabel="true"
+                    app:ms_enableFloatingLabel="false"
+                    app:ms_errorColor="@color/error"
+                    app:ms_hint="Seleccionar Vendedor"
+                    app:ms_hintColor="@color/hint"
+                    app:ms_multiline="false" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textViewFecha"
+                    android:textColor="@color/black"
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="20dp"
+                    android:gravity="left|center_vertical"
+                    android:text="Fecha:" />
+
+
+                <fr.ganfra.materialspinner.MaterialSpinner
+                    android:id="@+id/spinnerFecha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:ms_baseColor="@color/primary"
+                    app:ms_enableErrorLabel="true"
+                    app:ms_enableFloatingLabel="false"
+                    app:ms_errorColor="@color/error"
+                    app:ms_hint="Seleccionar Categoria"
+                    app:ms_hintColor="@color/hint"
+                    app:ms_multiline="false" />
+
+
+            </LinearLayout>
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/dashboard_btn_mapa"
@@ -84,8 +163,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"
-                android:text="Mapa"
                 android:onClick="onClickMap"
+                android:text="Mapa"
                 android:textColor="@color/white" />
 
             <!--android:background="@color/accent"-->
@@ -122,7 +201,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="logOut"
-                android:text="@string/log_out" />
+                android:text="@string/log_out"
+                android:visibility="gone" />
         </LinearLayout>
 
     </LinearLayout>

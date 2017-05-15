@@ -87,7 +87,9 @@
             android:name=".LocationUpdaterServices"
             android:process=":my_service" />
 
-        <activity android:name=".Dashboard" />
+        <activity android:name=".Dashboard"
+            android:label=""
+            android:theme="@style/AppTheme.Dark"/>
 
     </application>
 
