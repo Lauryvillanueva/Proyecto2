@@ -8,7 +8,13 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -23,6 +29,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,9 +78,12 @@ public class MapsActivity extends FragmentActivity implements
 
         LatLng current;
         LatLng previous;
+
+
         for (int i = 0; i < loc.size() - 1; i++) {
             current = loc.get(i);
             previous = loc.get(i + 1);
+
 
             PolylineOptions polylineOptions = new PolylineOptions()
                     .add(current)
@@ -83,6 +93,33 @@ public class MapsActivity extends FragmentActivity implements
 
             mMap.addPolyline(polylineOptions);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, 21f));
+/*
+            final LatLng finalCurrent = current;
+            GoogleDirection.withServerKey(getString(R.string.google_maps_key))
+                    .from(current)
+                    .to(previous)
+                    .transportMode(TransportMode.WALKING)
+                    .execute(new DirectionCallback() {
+                        @Override
+                        public void onDirectionSuccess(Direction direction, String rawBody) {
+                            if (direction.isOK()) {
+                                Toast.makeText(getApplicationContext(), "DIRECTION KOK", Toast.LENGTH_LONG).show();
+                                ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
+                                PolylineOptions polylineOptions = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 5, Color.BLUE);
+                                mMap.addPolyline(polylineOptions);
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(finalCurrent, 21f));
+                            } else {
+                                Toast.makeText(getApplicationContext(), "NOT OK" + direction.getStatus(), Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+
+                        @Override
+                        public void onDirectionFailure(Throwable t) {
+                            Toast.makeText(getApplicationContext(), "Failure", Toast.LENGTH_LONG).show();
+                        }
+                    });*/
+
         }
 
 
@@ -96,6 +133,7 @@ public class MapsActivity extends FragmentActivity implements
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mLocationsList = new ArrayList<>(2);
 
         /*vendedorID=getIntent().getStringExtra("VendedorID");
         recorridoID=getIntent().getStringExtra("RecorridoID");*/
@@ -103,30 +141,21 @@ public class MapsActivity extends FragmentActivity implements
         auth = FirebaseAuth.getInstance();
 
         vendedorID=auth.getCurrentUser().getUid();
-        recorridoID="-Kk6wM33bZTJVfcGjSk_";
+        recorridoID="-Kk89GsOB8_wNPfbGz-D";
         mDatabaseRef=FirebaseDatabase.getInstance().getReference("tracks").child(recorridoID);
-        mDatabaseRef.addChildEventListener(new ChildEventListener() {
+
+
+        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Track track= dataSnapshot.getValue(Track.class);
-                LatLng latLng=new LatLng(Double.valueOf(track.getLat()),Double.valueOf(track.getLon()));
-                Log.d(TAG, "onChildAdded: "+latLng.toString());
-                //mLocationsList.add(latLng);
-            }
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snap: dataSnapshot.getChildren()) {
+                    Track track= snap.getValue(Track.class);
+                    LatLng latLng=new LatLng(Double.valueOf(track.getLat()),Double.valueOf(track.getLon()));
+                    mLocationsList.add(latLng);
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
+                }
+                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "");
+                updateMap(mLocationsList);
             }
 
             @Override
