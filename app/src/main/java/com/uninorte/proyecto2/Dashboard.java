@@ -28,6 +28,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -42,6 +43,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -51,6 +53,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+
+import fr.ganfra.materialspinner.MaterialSpinner;
 
 public class Dashboard extends AppCompatActivity implements View.OnClickListener,LocationListener,GoogleApiClient.OnConnectionFailedListener {
 
@@ -92,9 +97,14 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     private boolean enableConnection;
     private boolean enableGPS;
     private DatabaseReference mDatabase;
+    private DatabaseReference refvend;
     private Toolbar toolbar;
     private Track tracked;
    // DatabaseReference mDatabase;
+
+    private List<Vendedor> vendedorList;
+    private MaterialSpinner spVend,spFecha;
+    private SpinnerAdapterVend spinnerAdapterVend;
 
 
     /**
@@ -151,6 +161,8 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         btnMapa = (Button) findViewById(R.id.dashboard_btn_mapa);
         btnMapa.setOnClickListener(this);
 
+        MaterialSpinner spVen = (MaterialSpinner) findViewById(R.id.spinnerVend);
+
         //Init Firebase
         auth = FirebaseAuth.getInstance();
 
@@ -188,6 +200,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         String userId=auth.getCurrentUser().getUid();
         mDatabase =FirebaseDatabase.getInstance().getReference("users").child(userId);
 
+
         mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -196,6 +209,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                 if (!user.getRole().equals("Administrador")){
                     isAdmin=false;
                 }
+
                 tipousua.setText(user.getRole());
 
                 if (!isAdmin) {
@@ -241,6 +255,43 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                     startGPS();
                 }else{
                     opc.setVisibility(View.VISIBLE);
+
+                    // Toma los usuarios---------------------------------------------
+
+                    final FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference ref = database.getReference("users");
+                    ref.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            User usuario = dataSnapshot.getValue(User.class);
+
+                            //CORREGIR ACA... DEBE CONFIRMAR SI ES VEND Y PASAR AL SPINNER
+                            
+                            //spinner
+                            spinnerAdapterVend= new SpinnerAdapterVend(Dashboard.this, android.R.layout.simple_spinner_item, vendedorList);
+                            spinnerAdapterVend.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spVend.setAdapter(spinnerAdapterVend);
+                            spVend.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                  
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+                                    Log.d("SpinnerVend", "onNothingSelected");
+                                }
+                            });
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            System.out.println("The read failed: " + databaseError.getCode());
+                        }
+                    });
+                    //--------------------------------------------------------------
 
                 }
 
