@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "892848306424-1cvm24b4lb5abhm2fuj1u5h5k32pp2i0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uninorte.proyecto2",
+            "certificate_hash": "4293bc3bf86c4405c5e0e794baa8a13b5e549049"
+          }
+        },
+        {
           "client_id": "892848306424-rrgid4f00g2tkaf3n0n5bog9ljkq7mr3.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "892848306424-rrgid4f00g2tkaf3n0n5bog9ljkq7mr3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

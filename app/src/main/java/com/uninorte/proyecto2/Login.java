@@ -1,3 +1,4 @@
+
 package com.uninorte.proyecto2;
 
 
@@ -127,9 +128,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener{
 
                 if (firebaseAuth.getCurrentUser()!=null){
                    // Toast.makeText(getApplicationContext(), "usuario "+user.getPhotoUrl(),Toast.LENGTH_SHORT).show();
-                    User userG=new User("Vendedor",firebaseAuth.getCurrentUser().getEmail());
+                    /*User userG=new User("Vendedor",firebaseAuth.getCurrentUser().getEmail());
                     FirebaseDatabase.getInstance().getReference().child("users").child(firebaseAuth.getCurrentUser().getUid()).setValue(userG);
-                    Intent intent = new Intent(Login.this, Dashboard.class);
+                    */Intent intent = new Intent(Login.this, Dashboard.class);
                     startActivity(intent);
                 }
 

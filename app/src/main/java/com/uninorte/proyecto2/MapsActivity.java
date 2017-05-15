@@ -1,3 +1,4 @@
+
 package com.uninorte.proyecto2;
 
 import android.app.Activity;
@@ -23,6 +24,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -83,46 +86,21 @@ public class MapsActivity extends FragmentActivity implements
         LatLng previous;
 
 
+
         for (int i = 0; i < loc.size() - 1; i++) {
             current = loc.get(i);
             previous = loc.get(i + 1);
 
 
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .add(current)
-                    .add(previous)
+           PolylineOptions polylineOptions = new PolylineOptions()
+                    .add(current,previous)
                     .color(Color.RED)
-                    .width(5);
-
+                    .width(5)
+                   .geodesic(true);
+            Log.e("Drawing",current.toString() +","+previous.toString());
+            mMap.addMarker(new MarkerOptions().position(current).title(current.toString()));
             mMap.addPolyline(polylineOptions);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, 21f));
-/*
-            final LatLng finalCurrent = current;
-            GoogleDirection.withServerKey(getString(R.string.google_maps_key))
-                    .from(current)
-                    .to(previous)
-                    .transportMode(TransportMode.WALKING)
-                    .execute(new DirectionCallback() {
-                        @Override
-                        public void onDirectionSuccess(Direction direction, String rawBody) {
-                            if (direction.isOK()) {
-                                Toast.makeText(getApplicationContext(), "DIRECTION KOK", Toast.LENGTH_LONG).show();
-                                ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-                                PolylineOptions polylineOptions = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 5, Color.BLUE);
-                                mMap.addPolyline(polylineOptions);
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(finalCurrent, 21f));
-                            } else {
-                                Toast.makeText(getApplicationContext(), "NOT OK" + direction.getStatus(), Toast.LENGTH_LONG).show();
-                            }
-                        }
-
-
-                        @Override
-                        public void onDirectionFailure(Throwable t) {
-                            Toast.makeText(getApplicationContext(), "Failure", Toast.LENGTH_LONG).show();
-                        }
-                    });*/
-
         }
 
 
@@ -172,9 +150,11 @@ public class MapsActivity extends FragmentActivity implements
                     LatLng latLng=new LatLng(Double.valueOf(track.getLat()),Double.valueOf(track.getLon()));
                     mLocationsList.add(latLng);
 
+
                 }
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "");
                 updateMap(mLocationsList);
+                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "");
+
             }
 
             @Override
