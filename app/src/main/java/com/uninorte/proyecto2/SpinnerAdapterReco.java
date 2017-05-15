@@ -13,24 +13,24 @@ import java.util.List;
  * Created by LauryV on 14/05/2017.
  */
 
-public class SpinnerAdapterVend extends ArrayAdapter<Vendedor> {
+public class SpinnerAdapterReco extends ArrayAdapter<RecowithKey> {
 
     private Context context;
 
-    private List<Vendedor> vendedorLists;
+    private List<RecowithKey> recorridoLists;
 
-    public SpinnerAdapterVend(Context context, int textViewResourceId, List<Vendedor> vendedorLists) {
-        super(context, textViewResourceId, vendedorLists);
+    public SpinnerAdapterReco(Context context, int textViewResourceId, List<RecowithKey> recorridoLists) {
+        super(context, textViewResourceId, recorridoLists);
         this.context = context;
-        this.vendedorLists = vendedorLists;
+        this.recorridoLists = recorridoLists;
     }
 
     public int getCount(){
-        return vendedorLists.size();
+        return recorridoLists.size();
     }
 
-    public Vendedor getItem(int position){
-        return vendedorLists.get(position);
+    public RecowithKey getItem(int position){
+        return recorridoLists.get(position);
     }
 
     public long getItemId(int position){
@@ -41,7 +41,7 @@ public class SpinnerAdapterVend extends ArrayAdapter<Vendedor> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView textView = (TextView) View.inflate(context, android.R.layout.simple_spinner_item, null);
-        textView.setText(vendedorLists.get(position).getEmail());
+        textView.setText(recorridoLists.get(position).getRecorrido().getTimeI());
         return textView;
 
 
@@ -56,7 +56,7 @@ public class SpinnerAdapterVend extends ArrayAdapter<Vendedor> {
             LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = vi.inflate(android.R.layout.simple_spinner_dropdown_item, parent, false);
         }
-        ((TextView) convertView).setText(vendedorLists.get(position).getEmail());
+        ((TextView) convertView).setText(recorridoLists.get(position).getRecorrido().getTimeI());
         return convertView;
 
     }

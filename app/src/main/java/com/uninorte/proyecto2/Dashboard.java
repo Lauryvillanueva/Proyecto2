@@ -41,6 +41,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -63,7 +64,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     private GoogleApiClient googleApiClient;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
     //
-    private TextView txtWelcome,tipousua;
+    private TextView txtWelcome,tipousua,tvFecha;
     private Button btnLogout,btnMapa;
     private LinearLayout opc;
     private RelativeLayout activity_dashboard;
@@ -103,8 +104,13 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
    // DatabaseReference mDatabase;
 
     private List<Vendedor> vendedorList;
-    private MaterialSpinner spVend,spFecha;
+    private MaterialSpinner spVen,spFecha;
+    private String vendKey;
     private SpinnerAdapterVend spinnerAdapterVend;
+
+    private List<RecowithKey> recorridoList;
+    private String recoKey;
+    private SpinnerAdapterReco spinnerAdapterReco;
 
 
     /**
@@ -161,7 +167,13 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         btnMapa = (Button) findViewById(R.id.dashboard_btn_mapa);
         btnMapa.setOnClickListener(this);
 
-        MaterialSpinner spVen = (MaterialSpinner) findViewById(R.id.spinnerVend);
+        final MaterialSpinner spVen = (MaterialSpinner) findViewById(R.id.spinnerVend);
+        final MaterialSpinner spFecha = (MaterialSpinner) findViewById(R.id.spinnerFecha);
+        tvFecha =(TextView) findViewById(R.id.textViewFecha);
+        tvFecha.setVisibility(View.INVISIBLE);
+        spFecha.setVisibility(View.INVISIBLE);
+        recorridoList=new ArrayList<>();
+        vendedorList=new ArrayList<>();
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -263,26 +275,92 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                     ref.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snap: dataSnapshot.getChildren()) {
+                                User usuario= snap.getValue(User.class);
+                                if(usuario.getRole().equals("Vendedor")){
+                                    vendedorList.add(new Vendedor(snap.getKey(),usuario.getEmail()));
+                                }
 
-                            User usuario = dataSnapshot.getValue(User.class);
+                            }
 
                             //CORREGIR ACA... DEBE CONFIRMAR SI ES VEND Y PASAR AL SPINNER
-                            
-                            //spinner
-                            spinnerAdapterVend= new SpinnerAdapterVend(Dashboard.this, android.R.layout.simple_spinner_item, vendedorList);
-                            spinnerAdapterVend.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spVend.setAdapter(spinnerAdapterVend);
-                            spVend.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                                  
-                                }
+                            if(!vendedorList.isEmpty()) {
+                                //spinner
 
-                                @Override
-                                public void onNothingSelected(AdapterView<?> adapterView) {
-                                    Log.d("SpinnerVend", "onNothingSelected");
-                                }
-                            });
+                                spinnerAdapterVend = new SpinnerAdapterVend(Dashboard.this, android.R.layout.simple_spinner_item, vendedorList);
+                                spinnerAdapterVend.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                spVen.setAdapter(spinnerAdapterVend);
+                                spVen.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                        if(i!=-1){
+                                            vendKey=spinnerAdapterVend.getItem(i).getKey();
+                                            recorridoList=new ArrayList<RecowithKey>();
+                                            recoKey=null;
+
+                                            DatabaseReference recoRef=database.getReference("recorridos");
+                                            recoRef.child(vendKey).addValueEventListener(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                                    for (DataSnapshot snap: dataSnapshot.getChildren()) {
+                                                        Recorrido recorrido= snap.getValue(Recorrido.class);
+                                                        recorridoList.add(new RecowithKey(snap.getKey(),recorrido));
+                                                    }
+                                                    if (!recorridoList.isEmpty()){
+                                                        spFecha.setVisibility(View.VISIBLE);
+                                                        tvFecha.setVisibility(View.VISIBLE);
+                                                        spinnerAdapterReco= new SpinnerAdapterReco(Dashboard.this, android.R.layout.simple_spinner_item, recorridoList);
+                                                        spinnerAdapterReco.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                                        spFecha.setAdapter(spinnerAdapterReco);
+                                                        spFecha.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                                            @Override
+                                                            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                                                if(i!=-1){
+                                                                    recoKey=spinnerAdapterReco.getItem(i).getKey();
+                                                                }else{
+                                                                    recoKey=null;
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                                            }
+                                                        });
+
+                                                    }else{
+                                                        spFecha.setVisibility(View.INVISIBLE);
+                                                        tvFecha.setVisibility(View.INVISIBLE);
+                                                        Toast.makeText(Dashboard.this,"No Hay Recorridos",Toast.LENGTH_SHORT);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError databaseError) {
+
+                                                }
+                                            });
+
+
+                                        }else{
+                                            spFecha.setVisibility(View.INVISIBLE);
+                                            tvFecha.setVisibility(View.INVISIBLE);
+                                            vendKey=null;
+                                            recoKey=null;
+                                        }
+
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> adapterView) {
+                                        Log.d("SpinnerVend", "onNothingSelected");
+                                    }
+                                });
+
+
+                            }else{
+                                Toast.makeText(Dashboard.this,"No Hay Vendedores",Toast.LENGTH_SHORT);
+                            }
 
                         }
 
@@ -424,9 +502,16 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
                 logoutUser();
                 break;
             case R.id.dashboard_btn_mapa :
-                Intent i = new Intent(Dashboard.this, MapsActivity.class);
-                startActivity(i);
-                break;
+                if(vendKey!=null & recoKey!=null){
+                    Intent i = new Intent(Dashboard.this, MapsActivity.class);
+                    i.putExtra("VendedorId",vendKey);
+                    i.putExtra("RecorridoId",recoKey);
+                    startActivity(i);
+                    break;
+                }else{
+                    Toast.makeText(Dashboard.this,"Seleccionar Vendedor y Recorrido",Toast.LENGTH_SHORT);
+                }
+
         }
     }
 

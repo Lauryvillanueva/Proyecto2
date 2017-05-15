@@ -14,6 +14,9 @@ public class Vendedor {
         this.email = email;
     }
 
+    public Vendedor() {
+    }
+
     public String getKey() {
         return key;
     }

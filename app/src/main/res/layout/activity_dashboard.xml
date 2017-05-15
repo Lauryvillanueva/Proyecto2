@@ -150,7 +150,7 @@
                     app:ms_enableErrorLabel="true"
                     app:ms_enableFloatingLabel="false"
                     app:ms_errorColor="@color/error"
-                    app:ms_hint="Seleccionar Categoria"
+                    app:ms_hint="Seleccionar Fecha"
                     app:ms_hintColor="@color/hint"
                     app:ms_multiline="false" />
 

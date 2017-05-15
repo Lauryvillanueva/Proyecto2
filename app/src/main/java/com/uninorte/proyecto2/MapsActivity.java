@@ -135,13 +135,13 @@ public class MapsActivity extends FragmentActivity implements
         mapFragment.getMapAsync(this);
         mLocationsList = new ArrayList<>(2);
 
-        /*vendedorID=getIntent().getStringExtra("VendedorID");
-        recorridoID=getIntent().getStringExtra("RecorridoID");*/
+        vendedorID=getIntent().getStringExtra("VendedorId");
+        recorridoID=getIntent().getStringExtra("RecorridoId");
 
         auth = FirebaseAuth.getInstance();
 
-        vendedorID=auth.getCurrentUser().getUid();
-        recorridoID="-Kk89GsOB8_wNPfbGz-D";
+        /*vendedorID=auth.getCurrentUser().getUid();
+        recorridoID="-Kk89GsOB8_wNPfbGz-D";*/
         mDatabaseRef=FirebaseDatabase.getInstance().getReference("tracks").child(recorridoID);
 
 

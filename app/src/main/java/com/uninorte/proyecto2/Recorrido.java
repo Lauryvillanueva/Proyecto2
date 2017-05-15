@@ -7,7 +7,6 @@ import com.google.firebase.database.IgnoreExtraProperties;
  */
 @IgnoreExtraProperties
 public class Recorrido {
-
     private String User_id;
     private String TimeI;
     private String TimeF;
