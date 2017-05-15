@@ -182,22 +182,69 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
             txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
 
         }
-        isAdmin=false;
+        isAdmin=true;
 
-        mDatabase =FirebaseDatabase.getInstance().getReference("users");
+
         String userId=auth.getCurrentUser().getUid();
+        mDatabase =FirebaseDatabase.getInstance().getReference("users").child(userId);
 
-        mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user=dataSnapshot.getValue(User.class);
-                if (user.getRole().equals("Administrador")){
-                    Log.i("Tipo Usuario: ",user.getRole() );
-                    //btnMapa.setVisibility(View.VISIBLE);
-                    opc.setVisibility(View.VISIBLE);
-                    isAdmin=true;
+                Log.i("Tipo Usuario: ",user.getRole() );
+                if (!user.getRole().equals("Administrador")){
+                    isAdmin=false;
                 }
                 tipousua.setText(user.getRole());
+
+                if (!isAdmin) {
+                    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    btnMapa.setVisibility(View.GONE);
+                    opc.setVisibility(View.GONE);
+                    mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                    final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+
+
+                    if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+                        buildAlertMessageNoGps();
+                    }
+                    myTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                    callStateListener = new PhoneStateListener() {
+                        public void onDataConnectionStateChanged(int state) {
+                            String stateString;
+                            switch (state) {
+                                case TelephonyManager.DATA_CONNECTED:
+                                    enableConnection = true;
+                                    break;
+                                case TelephonyManager.DATA_DISCONNECTED:
+                                    Log.i("State: ", "Offline");
+                                    stateString = "Offline";
+                                    enableConnection = false;
+                                    Toast.makeText(getApplicationContext(),
+                                            stateString, Toast.LENGTH_LONG).show();
+                                    break;
+                                case TelephonyManager.DATA_SUSPENDED:
+                                    Log.i("State: ", "IDLE");
+                                    stateString = "Idle";
+                                    Toast.makeText(getApplicationContext(),
+                                            stateString, Toast.LENGTH_LONG).show();
+                                    break;
+                            }
+                        }
+                    };
+                    myTelephonyManager.listen(callStateListener,
+                            PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+
+                    //empiezo a guardar apenas inicializo
+
+                    startGPS();
+                }else{
+                    opc.setVisibility(View.VISIBLE);
+
+                }
+
+
             }
 
             @Override
@@ -205,50 +252,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
 
             }
         });
-        if (!isAdmin) {
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            //btnMapa.setVisibility(View.GONE);
-            opc.setVisibility(View.GONE);
-            mManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
-
-            if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-                buildAlertMessageNoGps();
-            }
-            myTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            callStateListener = new PhoneStateListener() {
-                public void onDataConnectionStateChanged(int state) {
-                    String stateString;
-                    switch (state) {
-                        case TelephonyManager.DATA_CONNECTED:
-                            enableConnection = true;
-                            break;
-                        case TelephonyManager.DATA_DISCONNECTED:
-                            Log.i("State: ", "Offline");
-                            stateString = "Offline";
-                            enableConnection = false;
-                            Toast.makeText(getApplicationContext(),
-                                    stateString, Toast.LENGTH_LONG).show();
-                            break;
-                        case TelephonyManager.DATA_SUSPENDED:
-                            Log.i("State: ", "IDLE");
-                            stateString = "Idle";
-                            Toast.makeText(getApplicationContext(),
-                                    stateString, Toast.LENGTH_LONG).show();
-                            break;
-                    }
-                }
-            };
-            myTelephonyManager.listen(callStateListener,
-                    PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
-
-            //empiezo a guardar apenas inicializo
-
-            startGPS();
-        }else{
-
-        }
 
     }
 
