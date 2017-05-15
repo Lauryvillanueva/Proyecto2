@@ -59,7 +59,7 @@ import java.util.List;
 
 import fr.ganfra.materialspinner.MaterialSpinner;
 
-public class Dashboard extends AppCompatActivity implements View.OnClickListener,LocationListener,GoogleApiClient.OnConnectionFailedListener {
+public class Dashboard extends AppCompatActivity implements View.OnClickListener,LocationListener{
 
     //google
     private GoogleApiClient googleApiClient;
@@ -179,29 +179,7 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         //Init Firebase
         auth = FirebaseAuth.getInstance();
 
-        //google----------------------------------------------
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
 
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-        auth = FirebaseAuth.getInstance();
-        firebaseAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    //setUserData(user);
-                } else {
-                    goLogInScreen();
-                }
-            }
-        };
-        //------------------------------------------------
         //Session check
         if (auth.getCurrentUser() != null) {
             txtWelcome.setText("Bienvenido , " + auth.getCurrentUser().getEmail());
@@ -576,45 +554,5 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
         }
     }
 
-    //google------------------------------
 
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        auth.addAuthStateListener(firebaseAuthListener);
-    }
-    private void goLogInScreen() {
-        Intent intent = new Intent(this, Login.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
-    public void logOut(View view) {
-        auth.signOut();
-
-        Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(@NonNull Status status) {
-                if (status.isSuccess()) {
-                    goLogInScreen();
-                } else {
-                    Toast.makeText(getApplicationContext(), R.string.not_close_session, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (firebaseAuthListener != null) {
-            auth.removeAuthStateListener(firebaseAuthListener);
-        }
-    }
 }

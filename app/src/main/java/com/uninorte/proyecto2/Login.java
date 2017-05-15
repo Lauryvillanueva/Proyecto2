@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 
-public class Login extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener{
+public class Login extends AppCompatActivity implements View.OnClickListener{
 
 
     private static final String TAG = "LoginActivity";
@@ -61,11 +61,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Go
     private DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference user = ref.child("users");
 
-    //google
-    private GoogleApiClient googleApiClient;
-    private SignInButton signInButton;
-    public static final int SIGN_IN_CODE = 777;
-    private FirebaseAuth.AuthStateListener firebaseAuthListener;
+    SignInButton loginbtn;
+    private static final int RC_SIGN_IN = 0;
+    private GoogleApiClient mGoogleApiClient;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,132 +112,115 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Go
             startActivity(new Intent(Login.this, Dashboard.class));
         }
 
-        // Configure Google Sign In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestId()
-                .requestEmail()
-                .requestProfile()
-                .build();
+        // Google
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener(){
 
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        Log.e(TAG, "GoogleApiClient connection failed:" + connectionResult.getErrorMessage());
-                    }
-                })
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-        signInButton = (SignInButton) findViewById(R.id.signInButton);
-
-        signInButton.setSize(SignInButton.SIZE_WIDE);
-
-        signInButton.setColorScheme(SignInButton.COLOR_DARK);
-
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
-                startActivityForResult(intent, SIGN_IN_CODE);
-            }
-        });
-        firebaseAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    goMainScreen();
+
+
+
+
+
+                if (firebaseAuth.getCurrentUser()!=null){
+                   // Toast.makeText(getApplicationContext(), "usuario "+user.getPhotoUrl(),Toast.LENGTH_SHORT).show();
+                    User userG=new User("Vendedor",firebaseAuth.getCurrentUser().getEmail());
+                    FirebaseDatabase.getInstance().getReference().child("users").child(firebaseAuth.getCurrentUser().getUid()).setValue(userG);
+                    Intent intent = new Intent(Login.this, Dashboard.class);
+                    startActivity(intent);
                 }
+
             }
         };
 
-    }
-    //google
+        loginbtn = (SignInButton) findViewById(R.id.loginbtn);
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // Configure Google Sign In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
 
-    }
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == SIGN_IN_CODE) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result);
-        }
-    }
-
-    private void handleSignInResult(GoogleSignInResult result) {
-        if (result.isSuccess()) {
-            firebaseAuthWithGoogle(result.getSignInAccount());
-        } else {
-            Toast.makeText(this, R.string.not_log_in, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void firebaseAuthWithGoogle(GoogleSignInAccount signInAccount) {
-
-        //progressBar.setVisibility(View.VISIBLE);
-        signInButton.setVisibility(View.GONE);
-
-        AuthCredential credential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
-        auth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-
-                //progressBar.setVisibility(View.GONE);
-                signInButton.setVisibility(View.VISIBLE);
-                if (!task.isSuccessful()) {
-                    Toast.makeText(getApplicationContext(), R.string.not_firebase_auth, Toast.LENGTH_SHORT).show();
-                }else {
-                    mDatabase = FirebaseDatabase.getInstance().getReference("users");
-                    String userId = task.getResult().getUser().getUid();
-                    final User[] usuario = new User[1];
-
-                    mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            usuario[0] = dataSnapshot.getValue(User.class);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-                    if (usuario[0] == null) {
-                        User user = new User("Vendedor", task.getResult().getUser().getEmail());
-                        mDatabase.child(userId).setValue(user);
+                        Toast.makeText(getApplicationContext(), connectionResult.getErrorMessage(), Toast.LENGTH_SHORT)
+                                .show();
 
                     }
-                }
+                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+        loginbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                signIn();
 
             }
         });
-    }
 
-    private void goMainScreen() {
-        Intent intent = new Intent(this, Dashboard.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
 
+
+    }
+    //google
     @Override
-    public void onStart() {
+    protected void onStart() {
         super.onStart();
-        auth.addAuthStateListener(firebaseAuthListener);
+
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        if (firebaseAuthListener != null) {
-            auth.removeAuthStateListener(firebaseAuthListener);
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+
+                firebaseAuthWithGoogle(account);
+            } else {
+                // Google Sign In failed, update UI appropriately
+                // ...
+            }
         }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(Login.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        // ...
+                    }
+                });
     }
     //----------------------------------
 
