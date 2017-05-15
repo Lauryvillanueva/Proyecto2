@@ -27,6 +27,7 @@ import android.support.v7.widget.Toolbar;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -391,7 +392,8 @@ public class Dashboard extends AppCompatActivity implements View.OnClickListener
     }
 
     private void buildAlertMessageNoGps() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(Dashboard.this, R.style.AppTheme_Dialog));
         builder.setTitle("GPS Desactivado");
         builder.setMessage("Su GPS se encuentra desactivado, desea activarlo?");
         builder.setCancelable(false);

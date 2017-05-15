@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,10 +27,11 @@ import fr.ganfra.materialspinner.MaterialSpinner;
 
 public class SignUp extends AppCompatActivity implements View.OnClickListener {
 
-    Button btnSignup;
-    EditText input_email,input_pass;
-    RelativeLayout activity_sign_up;
-    DatabaseReference mDatabase;
+    private Button btnSignup;
+    private String roleUser;
+    private EditText input_email,input_pass;
+    private RelativeLayout activity_sign_up;
+    private DatabaseReference mDatabase;
     private MaterialSpinner rolUsuario;
 
 
@@ -71,9 +73,25 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
         rolUsuario = (MaterialSpinner) findViewById(R.id.spinnerRol);
 
         String[] roles = {"Vendedor","Administrador"};
-        ArrayAdapter<String> adapter =new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, roles);
+        final ArrayAdapter<String> adapter =new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, roles);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         rolUsuario.setAdapter(adapter);
+        rolUsuario.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if(i!=-1){
+                    roleUser=adapter.getItem(i);
+
+                }else{
+                    roleUser=null;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
         //------------------------------------------------
 
         btnSignup.setOnClickListener(this);
@@ -92,7 +110,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
 
     private void signUpUser(final String email, String password) {
 
-        if(TextUtils.isEmpty(email)|| TextUtils.isEmpty(password)){
+        if(TextUtils.isEmpty(email)|| TextUtils.isEmpty(password) || roleUser.equals(null)){
             Toast.makeText(SignUp.this,"Hay campos vacios",Toast.LENGTH_SHORT).show();
 
             //  input_email.setError("No puede estar vacio");
@@ -117,7 +135,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                         else{
                             mDatabase = FirebaseDatabase.getInstance().getReference("users");
                             String userId = task.getResult().getUser().getUid();
-                            User user= new  User("Vendedor",email);
+                            User user= new  User(roleUser,email);
                             mDatabase.child(userId).setValue(user);
 
                             Toast.makeText(SignUp.this,"Registro exitoso! ",Toast.LENGTH_SHORT).show();

@@ -36,6 +36,7 @@
     <style name="AppTheme.Dark.Dialog" parent="Theme.AppCompat.Dialog">
         <item name="colorAccent">@color/primary_dark</item>
         <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColor">@color/primary_text</item>
         <item name="android:background">@color/primary_light</item>
     </style>
 

@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -59,6 +60,8 @@ public class MapsActivity extends FragmentActivity implements
 
     private Activity mAct;
     private GoogleMap mMap;
+
+    private TextView title;
 
 
     private void updateMap() {
@@ -134,11 +137,27 @@ public class MapsActivity extends FragmentActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         mLocationsList = new ArrayList<>(2);
+        title=(TextView) findViewById(R.id.nameVen);
 
         vendedorID=getIntent().getStringExtra("VendedorId");
         recorridoID=getIntent().getStringExtra("RecorridoId");
 
         auth = FirebaseAuth.getInstance();
+        mDatabaseRef=FirebaseDatabase.getInstance().getReference("users").child(vendedorID);
+        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user=dataSnapshot.getValue(User.class);
+                title.setText(user.getEmail());
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
         /*vendedorID=auth.getCurrentUser().getUid();
         recorridoID="-Kk89GsOB8_wNPfbGz-D";*/
