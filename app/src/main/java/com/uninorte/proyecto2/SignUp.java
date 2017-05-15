@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -21,12 +22,16 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import fr.ganfra.materialspinner.MaterialSpinner;
+
 public class SignUp extends AppCompatActivity implements View.OnClickListener {
 
     Button btnSignup;
     EditText input_email,input_pass;
     RelativeLayout activity_sign_up;
     DatabaseReference mDatabase;
+    private MaterialSpinner rolUsuario;
+
 
 
     private ProgressDialog progressDialog;
@@ -61,6 +66,15 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
         input_email = (EditText)findViewById(R.id.signup_email);
         input_pass = (EditText)findViewById(R.id.signup_password);
         activity_sign_up = (RelativeLayout)findViewById(R.id.activity_sign_up);
+
+        //roles ------------------------------------------------
+        rolUsuario = (MaterialSpinner) findViewById(R.id.spinnerRol);
+
+        String[] roles = {"Vendedor","Administrador"};
+        ArrayAdapter<String> adapter =new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, roles);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        rolUsuario.setAdapter(adapter);
+        //------------------------------------------------
 
         btnSignup.setOnClickListener(this);
 

@@ -96,6 +96,37 @@
                 android:maxLines="1"
                 />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:weightSum="1">
+
+                <TextView
+                    android:id="@+id/TextVRole"
+                    android:layout_width="112dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="20dp"
+                    android:gravity="left|center_vertical"
+                    android:text="Seleccione Rol:"
+                    android:textColor="@color/accent"
+                    android:textSize="16dp" />
+
+                <fr.ganfra.materialspinner.MaterialSpinner
+                    android:id="@+id/spinnerRol"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:ms_baseColor="@color/primary"
+                    app:ms_enableErrorLabel="true"
+                    app:ms_enableFloatingLabel="false"
+                    app:ms_errorColor="@color/error"
+                    app:ms_hint="Seleccionar Rol"
+                    app:ms_hintColor="@color/hint"
+                    app:ms_multiline="false" />
+
+            </LinearLayout>
+
         </android.support.design.widget.TextInputLayout>
 
         <android.support.v7.widget.AppCompatButton
